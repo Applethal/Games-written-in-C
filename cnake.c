@@ -135,7 +135,7 @@ int main() {
     movecnake(&cnake, board, &b);
 
 
-    // Replace clrscr() with system("clear") for UNIX or system("cls") for Windows
+    
     system("clear");
     displayboard(board, &b);
   }

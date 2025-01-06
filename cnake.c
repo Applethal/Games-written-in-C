@@ -87,9 +87,10 @@ void movecnake(Cnake *s, int **board, Board *b) {
   printf("Current score: %d .Input your next move (W, A, S, D): \n", s->score);
   scanf(" %c", &move);
 
-  if (move != 'W' && move != 'A' && move != 'S' && move != 'D') {
+  while (move != 'W' && move != 'A' && move != 'S' && move != 'D') {
     printf("Invalid input, please use W, A, S, or D to move!\n");
-    return;
+    scanf(" %c", &move);
+
   }
 
   int new_x = s->cnake_x;

@@ -11,6 +11,7 @@ typedef struct {
 typedef struct {
   int cnake_x;
   int cnake_y;
+  int score;
 } Cnake;
 
 int **createboard(Board *b) {
@@ -49,7 +50,7 @@ Cnake spawncnake(int **board, Board *b) {
   int snake_y = rand() % b->length;
   int snake_x = rand() % b->width;
 
-  Cnake cnake = {snake_x, snake_y};
+  Cnake cnake = {snake_x, snake_y,0};
   board[snake_y][snake_x] = 1;
   return cnake;
 }
@@ -65,7 +66,7 @@ void spawnfood(int **board, Board *b) {
   board[food_y][food_x] = 2;
 }
 
-bool checkvalidmove(int new_x, int new_y, Board *b, int **board) {
+bool checkvalidmove(int new_x, int new_y, Board *b, int **board, Cnake *s) {
   if (new_x < 0 || new_x >= b->width || new_y < 0 || new_y >= b->length) {
     return false;
   }
@@ -74,6 +75,7 @@ bool checkvalidmove(int new_x, int new_y, Board *b, int **board) {
   }
   if (board[new_y][new_x] == 2){
     spawnfood(board, b);
+    s->score ++;
     return true;
   }
   return true;
@@ -82,7 +84,7 @@ bool checkvalidmove(int new_x, int new_y, Board *b, int **board) {
 
 void movecnake(Cnake *s, int **board, Board *b) {
   char move;
-  printf("Input your next move (W, A, S, D): \n");
+  printf("Current score: %d .Input your next move (W, A, S, D): \n", s->score);
   scanf(" %c", &move);
 
   if (move != 'W' && move != 'A' && move != 'S' && move != 'D') {
@@ -100,7 +102,7 @@ void movecnake(Cnake *s, int **board, Board *b) {
     case 'D': new_x++; break; // Move right
   }
 
-  if (checkvalidmove(new_x, new_y, b, board)) {
+  if (checkvalidmove(new_x, new_y, b, board, s)) {
 
     s->cnake_x = new_x;
     s->cnake_y = new_y;
@@ -135,7 +137,6 @@ int main() {
     movecnake(&cnake, board, &b);
 
 
-    
     system("clear");
     displayboard(board, &b);
   }

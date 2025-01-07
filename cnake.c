@@ -98,6 +98,10 @@ void movecnake(Cnake *s, int **board, Board *b) {
     case 'S': new_y++; break; // Move down
     case 'A': new_x--; break; // Move left
     case 'D': new_x++; break; // Move right
+    case 'w': new_y--; break; // Move up
+    case 's': new_y++; break; // Move down
+    case 'a': new_x--; break; // Move left
+    case 'd': new_x++; break; // Move right
   }
 
   if (!checkvalidmove(new_x, new_y, b, board)) {

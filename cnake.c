@@ -9,20 +9,18 @@ typedef struct {
 } Board;
 
 typedef struct {
-  int cnake_x;
-  int cnake_y;
+  int x;
+  int y;
+} Position;
+
+typedef struct {
+  Position *body;
+  int size;
+  int capacity;
   int score;
 } Cnake;
 
 int **createboard(Board *b) {
-  if (b->length < 2 && b->width < 2) {
-    while (b->length < 2 && b->width < 2) {
-      printf("Invalid insertion. Enter length and width values that are higher than 2: ");
-      scanf("%d", &b->length);
-      scanf("%d", &b->width);
-    }
-  }
-
   int **board = (int **)malloc(b->length * sizeof(int *));
   for (int i = 0; i < b->length; i++) {
     board[i] = (int *)malloc(b->width * sizeof(int));
@@ -50,7 +48,13 @@ Cnake spawncnake(int **board, Board *b) {
   int snake_y = rand() % b->length;
   int snake_x = rand() % b->width;
 
-  Cnake cnake = {snake_x, snake_y,0};
+  Cnake cnake;
+  cnake.size = 1;
+  cnake.capacity = 1000; // giving the snake 1000 as an arbitrary value for now
+  cnake.body = (Position *)malloc(cnake.capacity * sizeof(Position));
+  cnake.body[0] = (Position){snake_x, snake_y};
+  cnake.score = 0;
+
   board[snake_y][snake_x] = 1;
   return cnake;
 }
@@ -66,35 +70,28 @@ void spawnfood(int **board, Board *b) {
   board[food_y][food_x] = 2;
 }
 
-bool checkvalidmove(int new_x, int new_y, Board *b, int **board, Cnake *s) {
+bool checkvalidmove(int new_x, int new_y, Board *b, int **board) {
   if (new_x < 0 || new_x >= b->width || new_y < 0 || new_y >= b->length) {
     return false;
   }
   if (board[new_y][new_x] == 1) {
     return false;
   }
-  if (board[new_y][new_x] == 2){
-    spawnfood(board, b);
-    s->score ++;
-    return true;
-  }
   return true;
 }
 
-
 void movecnake(Cnake *s, int **board, Board *b) {
   char move;
-  printf("Current score: %d .Input your next move (W, A, S, D): \n", s->score);
+  printf("Current score: %d. Input your next move (W, A, S, D): \n", s->score);
   scanf(" %c", &move);
 
   while (move != 'W' && move != 'A' && move != 'S' && move != 'D') {
     printf("Invalid input, please use W, A, S, or D to move!\n");
     scanf(" %c", &move);
-
   }
 
-  int new_x = s->cnake_x;
-  int new_y = s->cnake_y;
+  int new_x = s->body[0].x;
+  int new_y = s->body[0].y;
 
   switch (move) {
     case 'W': new_y--; break; // Move up
@@ -103,30 +100,38 @@ void movecnake(Cnake *s, int **board, Board *b) {
     case 'D': new_x++; break; // Move right
   }
 
-  if (checkvalidmove(new_x, new_y, b, board, s)) {
-
-    s->cnake_x = new_x;
-    s->cnake_y = new_y;
-    board[s->cnake_y][s->cnake_x] = 1; // new position
-
-  } else {
+  if (!checkvalidmove(new_x, new_y, b, board)) {
     printf("Game over!\n");
     exit(0);
   }
+
+
+  bool ate_food = board[new_y][new_x] == 2;
+  if (ate_food) {
+    s->score++;
+    spawnfood(board, b);
+  } else {
+
+    Position tail = s->body[s->size - 1];
+    board[tail.y][tail.x] = 0;
+    s->size--;
+  }
+
+
+  for (int i = s->size; i > 0; i--) {
+    s->body[i] = s->body[i - 1];
+  }
+  s->body[0] = (Position){new_x, new_y};
+  s->size++;
+
+
+  board[new_y][new_x] = 1;
 }
 
-
-
 int main() {
-  int w, l;
   srand(time(NULL));
 
-  printf("Enter width of the board: \n");
-  scanf("%d", &w);
-  printf("Enter length of the board: \n");
-  scanf("%d", &l);
-
-  Board b = {w, l};
+  Board b = {20, 20};
   int **board = createboard(&b);
 
   Cnake cnake = spawncnake(board, &b);
@@ -137,11 +142,12 @@ int main() {
   while (true) {
     movecnake(&cnake, board, &b);
 
-
     system("clear");
     displayboard(board, &b);
   }
 
+
+  free(cnake.body);
   for (int i = 0; i < b.length; i++) {
     free(board[i]);
   }
